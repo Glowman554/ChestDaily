@@ -1,0 +1,9 @@
+name: ChestDaily
+version: ${project.version}
+main: de.glowman554.chestdaily.ChestDailyMain
+api-version: 1.19
+author: Glowman554
+softdepend: ['Multiverse-Core']
+commands:
+  kiste:
+    permission: kiste.use
