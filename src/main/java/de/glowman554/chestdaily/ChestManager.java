@@ -2,7 +2,7 @@ package de.glowman554.chestdaily;
 
 import java.util.HashMap;
 import java.util.Random;
-import java.util.logging.Level;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -14,37 +14,28 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import de.glowman554.chestdaily.utils.AutoResettingArrayList;
+
 public class ChestManager implements Listener
 {
+	private AutoResettingArrayList<UUID> cooldown = new AutoResettingArrayList<UUID>("chests", UUID::fromString);
 	private HashMap<String, Inventory> inventories = new HashMap<>();
+
 	private Random random = new Random();
 
-	public void scheduleRefillTask()
+	public ChestManager()
 	{
-		int day = 20 * 60 * 60 * 24;
-		long initial = secondsUntilMidnight() * 20;
-
-		Bukkit.getLogger().log(Level.INFO, String.format("Scheduling task in %d ticks every %d ticks", initial, day));
-
-		Bukkit.getServer().getScheduler().runTaskTimer(ChestDailyMain.getInstance(), this::onMidnight, initial, day);
+		cooldown.hook(this::onReset);
 	}
 
-	private long secondsUntilMidnight()
+	private void onReset()
 	{
-		long current = System.currentTimeMillis();
-		long midnight = ((current / 1000 / 60 / 60 / 24) + 1) * 1000 * 60 * 60 * 24;
-		return (midnight - current) / 1000;
-	}
-
-	private void onMidnight()
-	{
-		resetChests();
-	}
-
-	public void resetChests()
-	{
-		Bukkit.getLogger().log(Level.INFO, "Resetting chests!");
 		inventories.clear();
+	}
+
+	public void forceReset()
+	{
+		cooldown.forceReset();
 	}
 
 	private void openInventoryFor(HumanEntity player)
@@ -54,13 +45,18 @@ public class ChestManager implements Listener
 			Inventory inventory = Bukkit.createInventory(player, 9 * 3, "§c§lLootkiste");
 			inventories.put(player.getUniqueId().toString(), inventory);
 
-			int slotsToFill = random.nextInt(3, 11);
-			for (int i = 0; i < slotsToFill; i++)
+			if (!cooldown.contains(player.getUniqueId()))
 			{
-				int slot = random.nextInt(0, 9 * 3);
-				ChestItem item = ChestDailyMain.getInstance().getChestItems()[random.nextInt(0, ChestDailyMain.getInstance().getChestItems().length)];
+				int slotsToFill = random.nextInt(3, 11);
+				for (int i = 0; i < slotsToFill; i++)
+				{
+					int slot = random.nextInt(0, 9 * 3);
+					ChestItem item = ChestDailyMain.getInstance().getChestItems()[random.nextInt(0, ChestDailyMain.getInstance().getChestItems().length)];
 
-				inventory.setItem(slot, new ItemStack(item.getItem(), item.getAmmount()));
+					inventory.setItem(slot, new ItemStack(item.getItem(), item.getAmmount()));
+				}
+				cooldown.add(player.getUniqueId());
+				cooldown.save();
 			}
 		}
 

@@ -25,7 +25,7 @@ public class ChestDailyMain extends JavaPlugin
 	private Location barrelLocation;
 	private ChestItem[] chestItems;
 
-	private ChestManager chestManager = new ChestManager();
+	private ChestManager chestManager;
 
 	private void loadBarrelLocation()
 	{
@@ -44,7 +44,8 @@ public class ChestDailyMain extends JavaPlugin
 			throw new IllegalStateException("Block at location " + barrelLocation.toString() + " is not a Barrel! Block is " + barrel.getType());
 		}
 	}
-
+	
+	@SuppressWarnings("unchecked")
 	private void loadChestItems()
 	{
 		List<String> chestItemsString = (List<String>) config.getList("items");
@@ -86,7 +87,7 @@ public class ChestDailyMain extends JavaPlugin
 		loadChestItems();
 		loadBarrelLocation();
 
-		chestManager.scheduleRefillTask();
+		chestManager = new ChestManager();
 
 		ChestsCommand chests = new ChestsCommand();
 		getCommand("kiste").setExecutor(chests);

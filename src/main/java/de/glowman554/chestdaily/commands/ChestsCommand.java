@@ -20,7 +20,7 @@ public class ChestsCommand implements CommandExecutor, TabCompleter
 
 		if (args.length == 1 && args[0].equals("reload"))
 		{
-			ChestDailyMain.getInstance().getChestManager().resetChests();
+			ChestDailyMain.getInstance().getChestManager().forceReset();
 		}
 		else
 		{
